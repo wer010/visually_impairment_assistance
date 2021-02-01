@@ -23,10 +23,6 @@ class MyDataset:
         self.extra_x = np.stack(self.extra_x).transpose()
 
 
-
-
-
-
     @property
     def op_1st(self):
         # 149 data samples corresponding to the 149 subjects, which concat the 19 y into a single value.
@@ -37,8 +33,10 @@ class MyDataset:
         res_y[np.isnan(res_y)] = 0
         res_y = res_y.astype(np.int32)
         # print(np.unique(res_y))
-        ret = res_y.any(axis=1).astype(np.int8)
-        return self.x, ret
+        ret_y = res_y.any(axis=1).astype(np.int8)
+        ret_x = self.x
+        ret_x = self.data_normalize(ret_x)
+        return ret_x,ret_y
 
     @property
     def op_2nd(self):
@@ -55,7 +53,14 @@ class MyDataset:
         ret_y = np.concatenate(res_y)
         ret_y = (ret_y-1).astype(np.int32)
         assert ~np.any(np.isnan(ret_x))
+        ret_x = self.data_normalize(ret_x)
         return ret_x,ret_y
+
+    def data_normalize(self, data):
+        lower_bound = np.min(data,axis=0)
+        upper_bound = np.max(data,axis=0)
+        ret = (data - lower_bound)/(upper_bound - lower_bound)
+        return ret
 
     def split_dataset(self, r):
         train_set = []
