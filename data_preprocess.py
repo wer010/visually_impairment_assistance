@@ -22,12 +22,19 @@ class MyDataset:
         self.y = np.stack(self.y).transpose()
         self.extra_x = np.stack(self.extra_x).transpose()
 
+    def get_data(self, op = 1, normalization = True):
+        if op == 1:
+            ret_x, ret_y = self.op_1st
+        else:
+            ret_x, ret_y = self.op_2nd
+        if normalization:
+            ret_x = self.data_normalize(ret_x)
+        return ret_x,ret_y
 
     @property
     def op_1st(self):
         # 149 data samples corresponding to the 149 subjects, which concat the 19 y into a single value.
         # print(np.unique(self.y))
-
         # 0对应无，1为使用，2为弃用，-1后得到 0为无弃用，1为弃用，则总的y只要有一项弃用就视为弃用
         res_y = (self.y - 1)
         res_y[np.isnan(res_y)] = 0
@@ -35,7 +42,6 @@ class MyDataset:
         # print(np.unique(res_y))
         ret_y = res_y.any(axis=1).astype(np.int8)
         ret_x = self.x
-        ret_x = self.data_normalize(ret_x)
         return ret_x,ret_y
 
     @property
@@ -53,7 +59,6 @@ class MyDataset:
         ret_y = np.concatenate(res_y)
         ret_y = (ret_y-1).astype(np.int32)
         assert ~np.any(np.isnan(ret_x))
-        ret_x = self.data_normalize(ret_x)
         return ret_x,ret_y
 
     def data_normalize(self, data):
